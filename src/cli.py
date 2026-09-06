@@ -178,7 +178,7 @@ def _run_foreground(mcp=False):
     if mcp:
         from fileflow_mcp.server import create_fileflow_mcp
         from fileflow_mcp.security import create_policy
-        from fileflow_mcp.config import load_mcp_config
+        from fileflow_mcp.mcp_config import load_mcp_config
 
         config = load_mcp_config()
         policy = create_policy(rate_limit=config.get('rate_limit', 60))
@@ -655,7 +655,7 @@ def scanwatch():
 @app.command("mcp", rich_help_panel="[dim]Advanced[/dim]")
 def mcp_status():
     """Show MCP server configuration."""
-    from fileflow_mcp.config import load_mcp_config
+    from fileflow_mcp.mcp_config import load_mcp_config
     config = load_mcp_config()
 
     table = Table(title="MCP Configuration")
@@ -675,7 +675,7 @@ def mcp_status():
 @app.command("mcp-enable", rich_help_panel="[dim]Advanced[/dim]")
 def mcp_enable():
     """Enable MCP server."""
-    from fileflow_mcp.config import load_mcp_config, save_mcp_config
+    from fileflow_mcp.mcp_config import load_mcp_config, save_mcp_config
     config = load_mcp_config()
     config['enabled'] = True
     save_mcp_config(config)
@@ -686,7 +686,7 @@ def mcp_enable():
 @app.command("mcp-disable", rich_help_panel="[dim]Advanced[/dim]")
 def mcp_disable():
     """Disable MCP server."""
-    from fileflow_mcp.config import load_mcp_config, save_mcp_config
+    from fileflow_mcp.mcp_config import load_mcp_config, save_mcp_config
     config = load_mcp_config()
     config['enabled'] = False
     save_mcp_config(config)
