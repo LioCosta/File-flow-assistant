@@ -1,6 +1,7 @@
 import typer
 import time
 import os
+import json
 import asyncio
 from pathlib import Path
 from rich.console import Console
@@ -26,6 +27,8 @@ from services import (
 )
 
 __all__ = ['app']
+
+VERSION = "0.1.0"
 
 app = typer.Typer(
     callback=lambda: None,
@@ -378,6 +381,20 @@ def status():
     _show_dashboard()
 
 
+@app.command("version", rich_help_panel="[bold cyan]Core[/bold cyan]")
+def version():
+    """Show FileFlow version."""
+    from fileflow_mcp import __version__ as mcp_version
+
+    table = Table(title="FileFlow", show_header=False)
+    table.add_column("Setting", style="cyan")
+    table.add_column("Value", style="white")
+    table.add_row("Version", VERSION)
+    table.add_row("MCP Server", mcp_version)
+
+    console.print(table)
+
+
 @app.command(rich_help_panel="[yellow]Management[/yellow]")
 def db(action: str = typer.Argument("info", help="info | reset")):
     """Database operations (info or reset)."""
@@ -693,6 +710,30 @@ def mcp_disable():
     console.print("[green]MCP server disabled.[/green]")
 
 
+@app.command("mcp-tools", rich_help_panel="[dim]Advanced[/dim]")
+def mcp_tools():
+    """List MCP server tools."""
+    from fileflow_mcp.server import create_fileflow_mcp
+
+    import asyncio
+
+    async def _list():
+        mcp = create_fileflow_mcp()
+        return await mcp.list_tools()
+
+    tools = asyncio.run(_list())
+
+    table = Table(title=f"MCP Tools ({len(tools)})")
+    table.add_column("Tool", style="cyan")
+    table.add_column("Description", style="white")
+
+    for t in tools:
+        desc = (t.description or "").strip().replace("\n", " ")
+        table.add_row(t.name, desc[:80])
+
+    console.print(table)
+
+
 @app.command("mcp-audit", rich_help_panel="[dim]Advanced[/dim]")
 def mcp_audit(lines: int = typer.Option(20, "--lines", help="Number of recent entries")):
     """Show MCP audit log."""
@@ -858,8 +899,5 @@ def service_uninstall():
     subprocess.run(["systemctl", "--user", "daemon-reload"], capture_output=True)
 
     console.print("[green]FileFlow service uninstalled.[/green]")
-
-    if service_path_created():
-        service_path.unlink()
 
 
